@@ -8,6 +8,7 @@ import './App.css';
  */
 interface IState {
   data: ServerRespond[],
+  showGraph: boolean,
 }
 
 /**
@@ -17,11 +18,12 @@ interface IState {
 class App extends Component<{}, IState> {
   constructor(props: {}) {
     super(props);
-
+ //a new property showgraph is made so that identify when the graph is to be shown
     this.state = {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
       data: [],
+      showGraph: false,
     };
   }
 
@@ -29,6 +31,8 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
+    //shows graph only when button is pressed
+    if(this.state.showGraph)
     return (<Graph data={this.state.data}/>)
   }
 
@@ -36,11 +40,21 @@ class App extends Component<{}, IState> {
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      // Update the state by creating a new array of data that consists of
-      // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
-    });
+
+    let cnt =0;
+    //setinterval sets the function to be called after every fixed time because of which we get continous flow data
+    var intervalID  = setInterval(() => {
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
+        // Update the state by creating a new array of data that consists of
+        // Previous data in the state and the new data from server
+        this.setState({ data: serverResponds, showGraph: true });
+      });
+      cnt++;
+      if(cnt >5000){
+        clearInterval(intervalID);
+      }
+    },50);
+    
   }
 
   /**
